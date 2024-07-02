@@ -44,11 +44,6 @@ struct program {
     program(stat_list* sl) : statements(sl) {}
 };
 
-// I am not sure what we are doing 
-// same but i will like to believe it's not complete nonsense 
-// kal abhijit ko dikhane aur puchne ke liye kuch to rhega apne paas
-// and btw this struct looks fine, for now
-
 struct stat_list {
     vector<stat*> statements;
     stat_list() {}
