@@ -1,6 +1,6 @@
 %{
 	// Declarations (C++ code)
-	#include "pic.cc"
+	#include "mic.cc"
 	extern "C" void yyerror(const char *s);
 	extern int yylex(void);
 	extern map<string, double> table;
@@ -11,14 +11,14 @@
 	Expression *exp;
 }
 
-%token INT_CONST FLT_CONST NAME // Token declarations (lexer uses these declarations to return tokens)
-%token STRING BOOL INT // Declare additional tokens
+%token INT_CONST FLT_CONST NAME NULL// Token declarations (lexer uses these declarations to return tokens)
+%token STRING TRUE_CONST FALSE_CONST LET RETURN IF ELSE FN AND OR NE EQ GE LE IFX// Declare additional tokens
 
 %left '+' '-' // Left associative operators '+' and '-'
-%left '' '/' // Left associative operators '' and '/'
+%left '*' '/' // Left associative operators '' and '/'
 %right Uminus // Right associative unary minus operator
 
-%type <name> INT_CONST FLT_CONST NAME STRING BOOL INT // Declare token types to be of type *string
+%type <name> INT_CONST FLT_CONST NAME STRING TRUE_CONST FALSE_CONST NULL // Declare token types to be of type *string
 %type <exp> expression // Declare the expression non-terminal to be of type *Expression
 
 %start program // Starting rule for the grammar
@@ -35,91 +35,101 @@ statement_list
 	| statement
 	;
 
-statement
-	: assignment_statement
-	| if_statement
-	| func_def
-	| func_call
+block_statement
+	: '{' statement_list '}'
+	;
+
+function
+	: FN '(' args ')' block_statement
 	;
 
 func_call
-	: func_name LPAREN args RPAREN SEMICOLON
+	: NAME '(' exp_list ')'
 	;
 
-func_def
-	: LET func_name ASSIGN FUNCTION LPAREN param RPAREN LBRACE func_stmt LBRACE SEMICOLON
+exp_list
+	: exp_list ',' expression
+	| expression
 	;
-
-func_stmt
-    : RETURN expression SEMICOLON
-    | statement_list RETURN expression SEMICOLON
 
 args
-    : arg
-    | args COMMA arg
+    : args ',' NAME
+    | NAME
     ;
 
-arg
-    : variable_as_operand
-    | constant_as_operand
-    ;
+statement
+	: let_statement
+	| assignment_statement
+	| return_statement
+	| if_statement
+	| exp_statement
+	/* | func_def */
+	/* | func_call */
+	;
 
-param
-	: NAME
-	| param COMMA NAME
+let_statement
+	: LET NAME '=' expression ';'
 	;
 
 assignment_statement
-	: LET variable_as_operand ASSIGN expression SEMICOLON
-	| LET variable_as_operand ASSIGN func_call SEMICOLON
+	: NAME '=' expression ';'
 	;
+
+exp_statement
+	: expression ';'
+	;
+
+return_statement
+	: RETURN expression ';'
+	;
+/* 
+func_stmt
+    : RETURN expression ';'
+    | statement_list RETURN expression ';' */
+
 
 if_statement
-	: IF if_condition compound_statement ELSE compound_statement
-	| IF if_condition compound_statement
-	;
-
-if_condition
-	: LPAREN expression RPAREN 
-	;
-
-compound_statement
-	: LBRACE statement_list RBRACE
+	: IF '(' expression ')'  block_statement ELSE block_statement
+	| IF '(' expression ')'  block_statement %prec IFX
 	;
 
 expression
-	: expression ADD expression
-	| expression MINUS expression
-	| expression ASTERISK expression
-	| expression SLASH expression
-	| LPAREN expression RPAREN
-	| MINUS expression %prec Uminus
-	| variable_as_operand
-	| constant_as_operand
-	| rel_expression
+	: prefix
+	| rel_exp
+	| '(' expression ')'
+	| function
+	| func_call
+	| NAME
+	| INT_CONST
+	| FLT_CONST
+	| STRING
+	| TRUE_CONST
+	| FALSE_CONST
+	| NULL
+	;
+
+prefix
+	: '-' expression %prec Uminus
+	| '!' expression
+	;
+
+rel_exp
+	: expression '+' expression
+	| expression '-' expression
+	| expression '*' expression
+	| expression '/' expression
+	| expression '%' expression
+	| expression EQ expression
+	| expression NE expression
+	| expression '<' expression
+	| expression LE expression
+	| expression '>' expression
+	| expression GE expression
 	| expression AND expression
 	| expression OR expression
-	| NOT expression
 	;
 
-rel_expression
-	: expression LT expression
-	| expression LE expression
-	| expression GT expression
-	| expression GE expression
-	| expression NE expression
-	| expression EQ expression
-	;
-
-variable_as_operand
-	: variable_name
-	;
-
-variable_name
-	: NAME
-	;
-
-dict
+/* dict
 	: LBRACE dict_list RBRACE
 	; 
 
@@ -145,13 +155,13 @@ item
 	: constant_as_operand
 	| array
 	| dict
-	;
+	; */
 
-constant_as_operand
+/* constant_as_operand
 	: INT_CONST
 	| BOOL
 	| STRING
-	;
+	; */
 // new object
 %%
 
