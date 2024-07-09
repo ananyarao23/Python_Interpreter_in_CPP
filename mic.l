@@ -1,5 +1,5 @@
 %{
-#include "pic.hh"
+#include "mic.hh"
 #include "parse.tab.h"
 using namespace std;
 
