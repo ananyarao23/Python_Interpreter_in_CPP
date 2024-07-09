@@ -1,5 +1,5 @@
 %{
-#include "monke.hh"
+#include "pic.hh"
 #include "parse.tab.h"
 using namespace std;
 
@@ -19,7 +19,7 @@ ws          [ \t\n]*
 /* RULES */
 
 %%
-"fn"        { yylval.name = strdup(yytext); return FUNCTION; }
+"fn"        { yylval.name = strdup(yytext); return FN; }
 "let"       { yylval.name = strdup(yytext); return LET; }
 "true"      { yylval.name = strdup(yytext); return TRUE_CONST; }
 "false"     { yylval.name = strdup(yytext); return FALSE_CONST; }
@@ -27,30 +27,15 @@ ws          [ \t\n]*
 "else"      { yylval.name = strdup(yytext); return ELSE; }
 "return"    { yylval.name = strdup(yytext); return RETURN; }
 
-"="         { return ASSIGN; }
-"+"         { return PLUS; }
-"-"         { return MINUS; }
-"!"         { return BANG; }
-"*"         { return ASTERISK; }
-"/"         { return SLASH; }
-"<"         { return LT; }
-">"         { return GT; }
 "=="        { return EQ; }
-"!="        { return NOT_EQ; }
-","         { return COMMA; }
-";"         { return SEMICOLON; }
-":"         { return COLON; }
-"("         { return LPAREN; }
-")"         { return RPAREN; }
-"{"         { return LBRACE; }
-"}"         { return RBRACE; }
-"["         { return LBRACKET; }
-"]"         { return RBRACKET; }
+"!="        { return NE; }
+"<="        { return LE; }
+">="        { return GE; }
 
 -?{digit}+    { yylval.name = strdup(yytext); return INT_CONST; }
 {fraction}    { yylval.name = strdup(yytext); return FLT_CONST; }
 {letter}({letter}|{digit})*				{ yylval.name = new string(yytext); return STR_CONST; }
-\"([^\"]*)\" { yylval.name = strdup(yytext); return STR_CONST; }
+\"([^\"]*)\" { yylval.name = strdup(yytext); return STRING; }
 
 \n          { return NEWLINE; }
 {ws}        ;  /* Ignore whitespace */
