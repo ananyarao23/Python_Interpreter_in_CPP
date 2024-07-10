@@ -1,41 +1,37 @@
 %{
 	// Declarations (C++ code)
-	#include "mic.cc"
+	#include "mic.hh"
 	extern "C" void yyerror(const char *s);
 	extern int yylex(void);
 	extern map<string, double> table;
 %}
 
-%union{
-	string *name;	
-	Expression *exp;
+%union {
+    int intVal;
+    double floatVal;
+    std::string* strVal;
+    ExprPtr expr;
+    FuncPtr func;
+    FuncCallPtr funcCall;
+    StmtPtr stmt;
 }
 
-%token INT_CONST FLT_CONST NAME NULL// Token declarations (lexer uses these declarations to return tokens)
-%token STRING TRUE_CONST FALSE_CONST LET RETURN IF ELSE FN AND OR NE EQ GE LE IFX// Declare additional tokens
+%token INT_CONST
+%token FLT_CONST
+%token NAME STRING
+%token TRUE_CONST FALSE_CONST LET RETURN IF ELSE FN AND OR NE EQ GE LE IFX NULL_VAL
 
 %left '+' '-' // Left associative operators '+' and '-'
-%left '*' '/' // Left associative operators '' and '/'
+%left '*' '/' // Left associative operators '*' and '/'
 %right Uminus // Right associative unary minus operator
 
-%type <name> INT_CONST FLT_CONST NAME STRING TRUE_CONST FALSE_CONST NULL // Declare token types to be of type *string
-%type <exp> expression // Declare the expression non-terminal to be of type *Expression
-%type <prg> program
-%type <stat> statement
-%type <statl> statement_list
-%type <lstat> let_statement
-%type <astat> assignment_statement
-%type <bstat> block_statement
+/* %type <intVal> INT_CONST
+%type <floatVal> FLT_CONST
+%type <strVal> NAME STRING
+%type <expr> expression prefix rel_exp
 %type <func> function
-%type <funcc> func_call
-%type <funcd> func_def
-%type <rstat> return_statement
-%type <istat> if_statement
-%type <estat> exp_statement
-
-%type <expl> exp_list
-%type <a> args
-
+%type <funcCall> func_call
+%type <stmt> statement */
 
 %start program // Starting rule for the grammar
 %%
@@ -79,12 +75,8 @@ statement
 	| return_statement
 	| if_statement
 	| exp_statement
-	| func_def 
-	| func_call 
-	;
-
-func_def
-	: NAME '(' args ')' block_statement 
+	/* | func_def */
+	/* | func_call */
 	;
 
 let_statement
@@ -102,10 +94,10 @@ exp_statement
 return_statement
 	: RETURN expression ';'
 	;
-
+/* 
 func_stmt
     : RETURN expression ';'
-    | statement_list RETURN expression ';' 
+    | statement_list RETURN expression ';' */
 
 
 if_statement
@@ -120,7 +112,12 @@ expression
 	| function
 	| func_call
 	| NAME
-	| constant_as_operand
+	| INT_CONST
+	| FLT_CONST
+	| STRING
+	| TRUE_CONST
+	| FALSE_CONST
+	| NULL_VAL
 	;
 
 prefix
@@ -144,25 +141,25 @@ rel_exp
 	| expression OR expression
 	;
 
-dict
-	: '{' dict_list '}'
+/* dict
+	: LBRACE dict_list RBRACE
 	; 
 
 dict_list
-	: dict_list ',' dict_item
+	: dict_list COMMA dict_item
 	| dict_item
 	;
 
 dict_item
-	: STRING ':' constant_as_operand
+	: STRING COLON constant_as_operand
 	;
 
 array
-	: '[' array_list ']'
+	: LBRACKET array_list RBRACKET
 	;
 
 array_list
-	: array_list ',' item
+	: array_list COMMA item
 	| item
 	;
 
@@ -170,15 +167,13 @@ item
 	: constant_as_operand
 	| array
 	| dict
-	; 
+	; */
 
-constant_as_operand
+/* constant_as_operand
 	: INT_CONST
-	| FLT_CONST
-	| TRUE_CONST
-	| FALSE_CONST
+	| BOOL
 	| STRING
-	; 
+	; */
 // new object
 %%
 
