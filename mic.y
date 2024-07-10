@@ -20,6 +20,22 @@
 
 %type <name> INT_CONST FLT_CONST NAME STRING TRUE_CONST FALSE_CONST NULL // Declare token types to be of type *string
 %type <exp> expression // Declare the expression non-terminal to be of type *Expression
+%type <prg> program
+%type <stat> statement
+%type <statl> statement_list
+%type <lstat> let_statement
+%type <astat> assignment_statement
+%type <bstat> block_statement
+%type <func> function
+%type <funcc> func_call
+%type <funcd> func_def
+%type <rstat> return_statement
+%type <istat> if_statement
+%type <estat> exp_statement
+
+%type <expl> exp_list
+%type <a> args
+
 
 %start program // Starting rule for the grammar
 %%
@@ -63,8 +79,12 @@ statement
 	| return_statement
 	| if_statement
 	| exp_statement
-	/* | func_def */
-	/* | func_call */
+	| func_def 
+	| func_call 
+	;
+
+func_def
+	: NAME '(' args ')' block_statement 
 	;
 
 let_statement
@@ -82,10 +102,10 @@ exp_statement
 return_statement
 	: RETURN expression ';'
 	;
-/* 
+
 func_stmt
     : RETURN expression ';'
-    | statement_list RETURN expression ';' */
+    | statement_list RETURN expression ';' 
 
 
 if_statement
@@ -100,12 +120,7 @@ expression
 	| function
 	| func_call
 	| NAME
-	| INT_CONST
-	| FLT_CONST
-	| STRING
-	| TRUE_CONST
-	| FALSE_CONST
-	| NULL
+	| constant_as_operand
 	;
 
 prefix
@@ -129,25 +144,25 @@ rel_exp
 	| expression OR expression
 	;
 
-/* dict
-	: LBRACE dict_list RBRACE
+dict
+	: '{' dict_list '}'
 	; 
 
 dict_list
-	: dict_list COMMA dict_item
+	: dict_list ',' dict_item
 	| dict_item
 	;
 
 dict_item
-	: STRING COLON constant_as_operand
+	: STRING ':' constant_as_operand
 	;
 
 array
-	: LBRACKET array_list RBRACKET
+	: '[' array_list ']'
 	;
 
 array_list
-	: array_list COMMA item
+	: array_list ',' item
 	| item
 	;
 
@@ -155,13 +170,15 @@ item
 	: constant_as_operand
 	| array
 	| dict
-	; */
+	; 
 
-/* constant_as_operand
+constant_as_operand
 	: INT_CONST
-	| BOOL
+	| FLT_CONST
+	| TRUE_CONST
+	| FALSE_CONST
 	| STRING
-	; */
+	; 
 // new object
 %%
 
