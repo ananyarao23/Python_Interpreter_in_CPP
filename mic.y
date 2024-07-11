@@ -93,7 +93,7 @@ assignment_statement
 	;
 
 exp_statement
-	: expression ';'
+	: expression ';'				{const_as_op* x = new const_as_op($4->evaluate()); cout << x->val <<'\n';}
 	;
 
 return_statement

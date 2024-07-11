@@ -322,34 +322,33 @@ if_cond* create_if_cond(expression* cond);
 void assign(var_as_op* var_name,const_as_op* val);
 
 struct expression {
-    enum { CONST, VAR, BIN_OP, UNARY_OP, FUNC_CALL } expr_type;
+    enum {EXPRESSION ,CONST, VAR, BIN_OP, UNARY_OP, FUNC_CALL } expr_type;
     union {
+        expression* exp;
         const_as_op* constant;
         var_as_op* variable;
-        struct {
-            expression* left;
-            string op;
-            expression* right;
-        } bin_op;
-        struct {
-            string op;
-            expression* operand;
-        } unary_op;
+        rel_expression* bin_op;
+        prefix* uni_op;
         struct func_call* func;
     };
-    expression(expression* expr) : 
+    expression(expression* expr) : exp(expr), expr_type(EXPRESSION) {}
     expression(const_as_op* c) : expr_type(CONST), constant(c) {}
     expression(var_as_op* v) : expr_type(VAR), variable(v) {}
     expression(rel_expression* rel) : expr_type(BIN_OP) {
-        bin_op.left = rel->left_expr;
-        bin_op.op = rel->rel_;
-        bin_op.right = rel->right_expr;
+        bin_op = rel;
     }
-    expression(string o, expression* opnd) : expr_type(UNARY_OP) {
-        unary_op.op = o;
-        unary_op.operand = opnd;
+    expression(prefix* op) : expr_type(UNARY_OP) {
+        uni_op = op;
     }
     expression(func_call* f) : expr_type(FUNC_CALL), func(f) {}
+
+    double evaluate() {
+        if(expr_type == EXPRESSION) return exp->evaluate();
+        if(expr_type == CONST) return constant->val;
+        if(expr_type == BIN_OP) return bin_op->evaluate();
+        if(expr_type == VAR) return symbol_table[*variable]->val;
+        if(expr_type == UNARY_OP) return uni_op->evaluate();
+    }
 };
 
 struct rel_expression : public expression {
@@ -359,7 +358,7 @@ struct rel_expression : public expression {
     rel_expression(expression* le, const std::string& r, expression* re)
         : left_expr(le), right_expr(re), rel_(r) {}
     ~rel_expression() {
-        delete left_expr;
+        delete left_expr;const override
         delete right_expr;
     }
     double evaluate() const override {
@@ -376,10 +375,12 @@ struct rel_expression : public expression {
         if (rel_ == "<=") return left_val <= right_val;
         if (rel_ == ">") return left_val > right_val;
         if (rel_ == ">=") return left_val >= right_val;
-        if (rel_ == "&&") return left_val && right_val;
-        if (rel_ == "||") return left_val || right_val;
+        if (rel_ == "&") return left_val & right_val;
+        if (rel_ == "|") return left_val | right_val;
         throw std::runtime_error("Unknown operator: " + rel_);
     }
 };
 
-append_stmt(vector<stat*> list, stat* stmt);s
+vector<stat*> *append_stmt(vector<stat*> *list, stat* stmt);
+vector<expression*> *append_exp(vector<expression*> *list, expression* exp);
+vector<string> *append_args(vector<string> *args_list, string arg);
