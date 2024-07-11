@@ -7,9 +7,9 @@ class Statement;
 class Object;
 
 // Using smart pointers for memory management
-using ExprPtr = std::shared_ptr<Expression>;
-using StmtPtr = std::shared_ptr<Statement>;
-using ObjPtr = std::shared_ptr<Object>;
+using ExprPtr = Expression*;
+using StmtPtr = Statement*;
+using ObjPtr = Object*;
 
 // Enum class for object types
 enum class ObjType {
@@ -173,5 +173,5 @@ public:
     ExprPtr expression;
     ExpressionStatement(ExprPtr expression) : expression(expression) {}
 };
-using FuncPtr = std::shared_ptr<Function>;
-using FuncCallPtr = std::shared_ptr<FuncCall>;
+using FuncPtr = Function*;
+using FuncCallPtr = FuncCall*;
