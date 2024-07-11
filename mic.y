@@ -7,6 +7,7 @@
 %}
 
 %union {
+	string* name;
     int intVal;
     double floatVal;
     std::string* strVal;
@@ -18,6 +19,7 @@
 
 %token INT_CONST
 %token FLT_CONST
+%token STR_CONST
 %token NAME STRING
 %token TRUE_CONST FALSE_CONST LET RETURN IF ELSE FN AND OR NE EQ GE LE IFX NULL_VAL
 
@@ -75,7 +77,6 @@ statement
 	| return_statement
 	| if_statement
 	| exp_statement
-	| func_call
 	;
 
 
