@@ -34,10 +34,10 @@ null        { return NULL_VAL; }
 "|"          { return OR; }
 
 
--?{digit}+    { yylval.strVal = new string(yytext); return INT_CONST; }
-{fraction}    { yylval.strVal = new string(yytext); return FLT_CONST; }
-{letter}({letter}|{digit})*  { yylval.strVal = new string(yytext); return STR_CONST; }
-\"([^\"]*)\" { yylval.strVal = new string(yytext); return STRING; }
+-?{digit}+    { yylval.name = new string(yytext); return INT_CONST; }
+{fraction}    { yylval.name = new string(yytext); return FLT_CONST; }
+{letter}({letter}|{digit})*  { yylval.name = new string(yytext); return STR_CONST; }
+\"([^\"]*)\" { yylval.name = new string(yytext); return STRING; }
 
 {ws}        ;  /* Ignore whitespace */
 .           { fprintf(stderr, "unknown_token: %d\n", yytext[0]); exit(1); }

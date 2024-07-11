@@ -11,10 +11,12 @@
     int intVal;
     double floatVal;
     std::string* strVal;
-    ExprPtr expr;
-    FuncPtr func;
-    FuncCallPtr funcCall;
-    StmtPtr stmt;
+    expression* expr;
+	const_as_op* cao;
+    stat* stmt;
+	vector<stat*> *stmt_list;
+	vector<expression*> *exp_list;
+	vector<name*> *arg_list;
 }
 
 %token INT_CONST
@@ -27,13 +29,15 @@
 %left '*' '/' // Left associative operators '*' and '/'
 %right Uminus // Right associative unary minus operator
 %right ';'
-/* %type <intVal> INT_CONST
-%type <floatVal> FLT_CONST
-%type <strVal> NAME STRING
+%type <name> INT_CONST
+%type <name> FLT_CONST
+%type <name> NAME STRING
 %type <expr> expression prefix rel_exp
-%type <func> function
-%type <funcCall> func_call
-%type <stmt> statement */
+%type <stmt> statement
+%type <stmt_list> block_statement statement_list
+%type <exp_list> exp_list
+%type <arg_list> args
+%type <cao> constant_as_operand
 
 %start program // Starting rule for the grammar
 %%
@@ -41,16 +45,16 @@
 /* GRAMMAR */
 
 program
-	: statement_list
+	: statement_list						{ $1->code(); }
 	;
 
 statement_list
-	: statement_list statement
-	| statement
-	;
+	: statement_list statement				{ $$ = append_stmt($1,$2); }
+	| statement								{ $$ = append_stmt(nullptr,$1); }
+	;	
 
 block_statement
-	: '{' statement_list '}'
+	: '{' statement_list '}'				{ $$ = $2; }
 	;
 
 function
@@ -62,30 +66,30 @@ func_call
 	;
 
 exp_list
-	: exp_list ',' expression
-	| expression
+	: exp_list ',' expression				{ $$ = append_exp($1,$2); }
+	| expression							{ $$ = append_exp(nullptr,$1); }
 	;
 
 args
-    : args ',' NAME
-    | NAME
+    : args ',' NAME							{ $$ = append_args($1, $3); }
+    | NAME									{ $$ = append_args(nullptr, $1); }
     ;
 
 statement
-	: let_statement
-	| assignment_statement
-	| return_statement
-	| if_statement
-	| exp_statement
+	: let_statement							{ $$ = new stat($1); }
+	| assignment_statement					{ $$ = new stat($1); }
+	| return_statement						{ $$ = new stat($1); }
+	| if_statement							{ $$ = new stat($1); }
+	| exp_statement							{ $$ = new stat($1); }
 	;
 
 
 let_statement
-	: LET NAME '=' expression ';'
+	: LET NAME '=' expression ';'    {const_as_op* x = new const_as_op($4->evaluate()); symbol_table[*($2)] = x;}
 	;
 
 assignment_statement
-	: NAME '=' expression ';'
+	: NAME '=' expression ';'        {const_as_op* x = new const_as_op($4->evaluate()); symbol_table[*($2)] = x;}
 	;
 
 exp_statement
@@ -107,13 +111,13 @@ if_statement
 	;
 
 expression
-	: prefix
-	| rel_exp
-	| '(' expression ')'
-	| function
-	| func_call
-	| NAME
-	| constant_as_operand
+	: prefix						
+	| rel_exp						{$$ = new expression($1);}
+	| '(' expression ')'			{$$ = $2;}
+	| function						
+	| func_call						{$$ = new expression($1);}
+	| NAME							{$$ = new expression($1);}
+	| constant_as_operand			{$$ = new expression($1);}
 	;
 
 prefix
@@ -122,19 +126,19 @@ prefix
 	;
 
 rel_exp
-	: expression '+' expression
-	| expression '-' expression
-	| expression '*' expression
-	| expression '/' expression
-	| expression '%' expression
-	| expression EQ expression
-	| expression NE expression
-	| expression '<' expression
-	| expression LE expression
-	| expression '>' expression
-	| expression GE expression
-	| expression AND expression
-	| expression OR expression
+	: expression '+' expression			{$$ = new rel_expression($1,*($2),$3);}
+	| expression '-' expression			{$$ = new rel_expression($1,*($2),$3);}
+	| expression '*' expression			{$$ = new rel_expression($1,*($2),$3);}
+	| expression '/' expression			{$$ = new rel_expression($1,*($2),$3);}
+	| expression '%' expression			{$$ = new rel_expression($1,*($2),$3);}			
+	| expression EQ expression			{$$ = new rel_expression($1,*($2),$3);}
+	| expression NE expression			{$$ = new rel_expression($1,*($2),$3);}
+	| expression '<' expression			{$$ = new rel_expression($1,*($2),$3);}
+	| expression LE expression			{$$ = new rel_expression($1,*($2),$3);}
+	| expression '>' expression			{$$ = new rel_expression($1,*($2),$3);}
+	| expression GE expression			{$$ = new rel_expression($1,*($2),$3);}
+	| expression AND expression			{$$ = new rel_expression($1,*($2),$3);}
+	| expression OR expression			{$$ = new rel_expression($1,*($2),$3);}
 	;
 /* 
 dict
@@ -166,11 +170,11 @@ item
 	;  */
 
 constant_as_operand
-	: INT_CONST
-	| TRUE_CONST
-	| FALSE_CONST
-	| STRING
-	| NULL_VAL
+	: INT_CONST				{$$ = new const_as_op(atoi($1->c_str()));}
+	| TRUE_CONST			{$$ = new const_as_op(true);}
+	| FALSE_CONST			{$$ = new const_as_op(false);}
+	| STRING				{$$ = new const_as_op(*($1));}
+	| NULL_VAL				{$$ = new const_as_op(nullptr);}
 	; 
 // new object
 %%
