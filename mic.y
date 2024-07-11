@@ -21,10 +21,10 @@
 %token NAME STRING
 %token TRUE_CONST FALSE_CONST LET RETURN IF ELSE FN AND OR NE EQ GE LE IFX NULL_VAL
 
-%left '+' '-' // Left associative operators '+' and '-'
+%left '+' '-' '>' '<' '%' OR AND GE LE NE EQ '!'// Left associative operators '+' and '-'
 %left '*' '/' // Left associative operators '*' and '/'
 %right Uminus // Right associative unary minus operator
-
+%right ';'
 /* %type <intVal> INT_CONST
 %type <floatVal> FLT_CONST
 %type <strVal> NAME STRING
@@ -75,9 +75,9 @@ statement
 	| return_statement
 	| if_statement
 	| exp_statement
-	/* | func_def */
-	/* | func_call */
+	| func_call
 	;
+
 
 let_statement
 	: LET NAME '=' expression ';'
@@ -94,11 +94,11 @@ exp_statement
 return_statement
 	: RETURN expression ';'
 	;
-/* 
-func_stmt
-    : RETURN expression ';'
-    | statement_list RETURN expression ';' */
 
+/* func_stmt
+    : RETURN expression ';'
+    | statement_list RETURN expression ';'
+	; */
 
 if_statement
 	: IF '(' expression ')'  block_statement ELSE block_statement
@@ -112,12 +112,7 @@ expression
 	| function
 	| func_call
 	| NAME
-	| INT_CONST
-	| FLT_CONST
-	| STRING
-	| TRUE_CONST
-	| FALSE_CONST
-	| NULL_VAL
+	| constant_as_operand
 	;
 
 prefix
@@ -140,26 +135,26 @@ rel_exp
 	| expression AND expression
 	| expression OR expression
 	;
-
-/* dict
-	: LBRACE dict_list RBRACE
+/* 
+dict
+	: '{' dict_list '}'
 	; 
 
 dict_list
-	: dict_list COMMA dict_item
+	: dict_list ',' dict_item
 	| dict_item
 	;
 
 dict_item
-	: STRING COLON constant_as_operand
+	: STRING ':' constant_as_operand
 	;
 
 array
-	: LBRACKET array_list RBRACKET
+	: '[' array_list ']'
 	;
 
 array_list
-	: array_list COMMA item
+	: array_list ',' item
 	| item
 	;
 
@@ -167,13 +162,15 @@ item
 	: constant_as_operand
 	| array
 	| dict
-	; */
+	;  */
 
-/* constant_as_operand
+constant_as_operand
 	: INT_CONST
-	| BOOL
+	| TRUE_CONST
+	| FALSE_CONST
 	| STRING
-	; */
+	| NULL_VAL
+	; 
 // new object
 %%
 
